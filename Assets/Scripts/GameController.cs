@@ -5,29 +5,36 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    public static GameController Instance;
+    
     #region InspectorFields
     [SerializeField] private GameConfig gameConfig;
     [SerializeField] private float offsetBetweenImages;
+    [SerializeField] private float timeToNextLevel;
     #endregion
+    
+    #region Events
     public event Action onDataChange;
+    #endregion
+    
+    #region Propierties
     public int DoneScore { get; private set; }
     public int WrongScore { get; private set; }
     public int CurrentLevel { get; private set; }
-    public static GameController Instance;
+    #endregion
+    
+    #region PrivateFields
     private const int IMAGES_COUNT = 2;
     private GameObject[] imagesObjects;
     private float imagesHight;
     private float imagesWidth;
     private int objectsCount;
-    private enum ImagePlace
-    {
-        TOP = 0,
-        BOTTOM = 1
-    }
+    private enum ImagePlace { TOP = 0, BOTTOM = 1 }
+    private List<List<ClickableObject>> clicableObjects = new List<List<ClickableObject>>();
+    #endregion
 
-    public List<List<ClickableObject>> clicableObjects = new List<List<ClickableObject>>();
-
-    void Awake()
+    #region UnityMethods
+    private void Awake()
     {
         if (Instance == null)
         {
@@ -38,18 +45,21 @@ public class GameController : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    void Start()
+    private void Start()
     {
         CreateImages();
         FillLevel();
         SetCamera();
         onDataChange?.Invoke();
     }
+    #endregion
+    
 
+    #region PublicMethods
     public void ClickOnCorrectObject(int index)
     {
-        clicableObjects[0][index].RunAnimation();
-        clicableObjects[1][index].RunAnimation();
+        clicableObjects[(int)ImagePlace.TOP][index].RunAnimation();
+        clicableObjects[(int)ImagePlace.BOTTOM][index].RunAnimation();
         AddScore();
     }
     
@@ -58,7 +68,9 @@ public class GameController : MonoBehaviour
         WrongScore++;
         onDataChange?.Invoke();
     }
+    #endregion
 
+    #region PrivateMethods
     private void AddScore()
     {
         DoneScore++;
@@ -66,11 +78,11 @@ public class GameController : MonoBehaviour
 
         if (DoneScore == objectsCount)
         {
-            Invoke(nameof(LoadNextLevel), 0.5f);
+            Invoke(nameof(ChangeLevel), timeToNextLevel);
         }
     }
 
-    private void LoadNextLevel()
+    private void ChangeLevel()
     {
         DoneScore = 0;
         WrongScore = 0;
@@ -120,7 +132,6 @@ public class GameController : MonoBehaviour
         }
     }
 
-
     private void FillLevel()
     {
         var level = gameConfig.Levels[CurrentLevel];
@@ -145,5 +156,5 @@ public class GameController : MonoBehaviour
             objectsCount = clicableObjects[i].Count;
         }
     }
-
+    #endregion
 }

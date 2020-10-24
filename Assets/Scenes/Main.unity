@@ -713,7 +713,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameConfig: {fileID: 11400000, guid: 12240500dbee26b4dbc6d13d151fc475, type: 2}
-  offsetBetweenImages: 0
+  offsetBetweenImages: 0.1
+  timeToNextLevel: 1
 --- !u!4 &1255526774
 Transform:
   m_ObjectHideFlags: 0
