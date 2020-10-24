@@ -21,8 +21,10 @@ MonoBehaviour:
   - Images:
     - {fileID: 21300000, guid: 6f2a7a5de2e8b704196e726c6c8063ac, type: 3}
     - {fileID: 21300000, guid: 5a132a33f51f1894f9b060b441343e8d, type: 3}
-    ClickZonesPrefab: {fileID: 0}
+    ClickZonesPrefab: {fileID: 676128368482721139, guid: 0095bfdfb0b87034ea3dcb27af25da23,
+      type: 3}
   - Images:
     - {fileID: 21300000, guid: b2e627f4291952746aec1a05abe90237, type: 3}
     - {fileID: 21300000, guid: acb55301e1a54f54aaa7f07f577b02a7, type: 3}
-    ClickZonesPrefab: {fileID: 0}
+    ClickZonesPrefab: {fileID: 676128368482721139, guid: cd666bf9a546dd642859d77efdab2efa,
+      type: 3}

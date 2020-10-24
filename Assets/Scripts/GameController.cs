@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using Extensions;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    #region InspectorFields
     [SerializeField] private GameConfig gameConfig;
-    [SerializeField] private float offsetBetweenInages;
-
+    [SerializeField] private float offsetBetweenImages;
+    #endregion
     public event Action onDataChange;
     public int DoneScore { get; private set; }
     public int WrongScore { get; private set; }
@@ -17,13 +18,14 @@ public class GameController : MonoBehaviour
     private GameObject[] imagesObjects;
     private float imagesHight;
     private float imagesWidth;
+    private int objectsCount;
     private enum ImagePlace
     {
         TOP = 0,
         BOTTOM = 1
     }
 
-    public List<List<GameObject>> clicableObjects = new List<List<GameObject>>();
+    public List<List<ClickableObject>> clicableObjects = new List<List<ClickableObject>>();
 
     void Awake()
     {
@@ -38,57 +40,75 @@ public class GameController : MonoBehaviour
     }
     void Start()
     {
-        
+        CreateImages();
         FillLevel();
+        SetCamera();
         onDataChange?.Invoke();
     }
 
-    public void ClinckOnCurrectObject(int index)
+    public void ClickOnCorrectObject(int index)
     {
-        clicableObjects[0][index].SetActive(false);
-        clicableObjects[1][index].SetActive(false);
+        clicableObjects[0][index].RunAnimation();
+        clicableObjects[1][index].RunAnimation();
+        AddScore();
+    }
+    
+    public void ClickOnWrongObject()
+    {
+        WrongScore++;
+        onDataChange?.Invoke();
+    }
+
+    private void AddScore()
+    {
         DoneScore++;
+        onDataChange?.Invoke();
+
+        if (DoneScore == objectsCount)
+        {
+            Invoke(nameof(LoadNextLevel), 0.5f);
+        }
+    }
+
+    private void LoadNextLevel()
+    {
+        DoneScore = 0;
+        WrongScore = 0;
+
+        if (CurrentLevel < gameConfig.Levels.Length - 1)
+        {
+            CurrentLevel++;
+        }
+        else
+        {
+            CurrentLevel = 0;
+        }
+        FillLevel();
+        SetCamera();
         onDataChange?.Invoke();
     }
 
     private void SetupImage(SpriteRenderer spriteRenderer, Sprite image, ImagePlace place)
     {
         spriteRenderer.sprite = image;
-        var yPosition = spriteRenderer.size.y / 2 + offsetBetweenInages / 2;
+        var yPosition = spriteRenderer.size.y / 2 + offsetBetweenImages / 2;
         yPosition = place == ImagePlace.BOTTOM ? yPosition * -1 : yPosition;
         imagesHight += yPosition;
         imagesObjects[(int)place].transform.position = new Vector3(0, yPosition, 0);
         imagesWidth = spriteRenderer.size.x > imagesWidth ? spriteRenderer.size.x : imagesWidth;
     }
 
-
-    private void FillLevel()
+    private void CreateImages()
     {
-        var level = gameConfig.Levels[CurrentLevel];
         imagesObjects = new GameObject[IMAGES_COUNT];
         for (int i = 0; i < IMAGES_COUNT; i++)
         {
             imagesObjects[i] = new GameObject($"Image_{i}", typeof(SpriteRenderer));
         }
-        
-        for (int i = 0; i < IMAGES_COUNT; i++)
-        {
-            SetupImage(imagesObjects[i].GetComponent<SpriteRenderer>(), level.Images[i], (ImagePlace)i);
-        }
-        
-        for (int i = 0; i < IMAGES_COUNT; i++)
-        {
-            var zones = Instantiate(level.ClickZonesPrefab, imagesObjects[i].transform.position, Quaternion.identity, imagesObjects[i].transform);
-            clicableObjects.Add(new List<GameObject>());
-            foreach (Transform it in zones.transform)
-            {
-                clicableObjects[i].Add(it.gameObject);
-                it.gameObject.AddComponent<ClickableObject>();
-                it.GetComponent<ClickableObject>().Setup(clicableObjects[i].Count - 1);
-            }
-        }
-        
-        
+    }
+
+    private void SetCamera()
+    {
         Camera cam = Camera.main;
         if (Screen.height < Screen.width)
         {
@@ -99,4 +119,31 @@ public class GameController : MonoBehaviour
             cam.orthographicSize = imagesWidth  * Screen.height / Screen.width * 0.5f;
         }
     }
+
+
+    private void FillLevel()
+    {
+        var level = gameConfig.Levels[CurrentLevel];
+        clicableObjects.Clear();
+        for (int i = 0; i < IMAGES_COUNT; i++)
+        {
+            SetupImage(imagesObjects[i].GetComponent<SpriteRenderer>(), level.Images[i], (ImagePlace)i);
+            
+            imagesObjects[i].transform.Clear();
+
+            var zones = Instantiate(level.ClickZonesPrefab, imagesObjects[i].transform.position, Quaternion.identity, imagesObjects[i].transform);
+            clicableObjects.Add(new List<ClickableObject>());
+
+            foreach (Transform it in zones.transform)
+            {
+                if (it.GetComponent<ClickableObject>() != null)
+                {
+                    clicableObjects[i].Add(it.GetComponent<ClickableObject>());
+                    it.GetComponent<ClickableObject>()?.SetIndex(clicableObjects[i].Count - 1);
+                }
+            }
+            objectsCount = clicableObjects[i].Count;
+        }
+    }
+
 }

@@ -1,16 +1,22 @@
 ﻿using System;
 using UnityEngine;
-[RequireComponent(typeof(BoxCollider2D))]
+[RequireComponent(typeof(Animator))]
 public class ClickableObject : MonoBehaviour
 {
     public  int ArrayIndex { get; private set; }
-    public void Setup(int index)
+    private Animator _animator;
+    private void Start()
+    {
+        _animator = GetComponent<Animator>();
+    }
+
+    public void SetIndex(int index)
     {
         ArrayIndex = index;
     }
 
     public void RunAnimation()
     {
-        
+        _animator.Play("Popup");
     }
 }
